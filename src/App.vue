@@ -1,16 +1,18 @@
 <template>
   <div id="app">
+    <router-view></router-view>
+    <MainTarBar></MainTarBar>
+<!--    <main-tar-bar></main-tar-bar>-->
 
   </div>
 </template>
 
 <script>
-
-
+  import MainTarBar from "./components/content/maintarbar/MainTarBar";
   export default {
     name: 'App',
-    components: {
-
+    components:{
+      MainTarBar,
     }
   }
 </script>
@@ -18,6 +20,4 @@
 
 <style>
   @import "assets/css/base.css";
-
-
 </style>

@@ -25,9 +25,10 @@
 </template>
 
 <script>
-    import TarBar from 'components/common/tarbar/TarBar'
-    import TarBarItem from 'components/common/tarbar/TarBarItem'
-
+    import TarBar from "../../common/tarbar/TarBar";
+    // import TarBar from 'components/common/tarbar/TarBar'
+    // import TarBarItem from '~components/common/tarbar/TarBarItem'
+    import TarBarItem from "../../common/tarbar/TarBarItem";
     export default {
         name: "MainTarBar",
         components: {
