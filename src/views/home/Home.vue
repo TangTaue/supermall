@@ -4,11 +4,23 @@
     <NavBar class="home-nav">
       <div slot="center">购物街</div>
     </NavBar>
+  <Scroll class="content" ref="scroll" :probe-type="3" @scroll="contentScroll"
+          :pull-up-load="true"
+          @pullingUp="loadMore">   <!--3 表示实时监听位置-->
     <HomeSwiper :cbanners="banners"></HomeSwiper>
     <HomeRecommend v-bind:cproducts="recommends"></HomeRecommend>
+    <HomeFeatureView></HomeFeatureView>
+    <TabControl class="tab-control" :title="['流行','精选','新款']"
+                @tabClick="tabClick"
+    ></TabControl>
+    <!--    商品列表-->
+    <GoodsList :goods="showData"></GoodsList>
+  </Scroll>
+<!--    <GoodsList :goods="goods['pop'].list"></GoodsList>-->
+<!--    <GoodsList :goods="goods['pop'].list"></GoodsList>-->
+<!--    向上小图标-->
+    <BackTop @click.native="BackClick" v-show="isShow" ></BackTop>
   </div>
-
-
 
 <!--  <div id="home">-->
 <!--    <nav-bar class="home-nav-bar">-->
@@ -31,7 +43,14 @@
     import NavBar from "../../components/common/navbar/NavBar";
     import HomeSwiper from "./childComps/HomeSwiper";
     import HomeRecommend from "./childComps/HomeRecommend";
-    import {getHomeMultidata} from "../../network/home"
+    import HomeFeatureView from "./childComps/HomeFeatureView";
+    import TabControl from "../../components/content/tabControl/TabControl";
+
+    import GoodsList from "../../components/content/goods/GoodsList";
+    import Scroll from "../../components/common/sroll/Scroll";
+    // 回到顶部
+    import BackTop from "../../components/content/BackTop/BackTop";
+    import {getHomeMultidata, getHomeGoods} from "../../network/home"
 
     // import NavBar from "components/common/navbar/NavBar";
     // import HomeSwiper from "./childComps/HomeSwiper";
@@ -45,35 +64,108 @@
     // import {getHomeMultiData, getGoodsData} from "network/home";
 
     export default {
-        name: "Home",
-        components:{
-            NavBar,
-            HomeSwiper,
-            HomeRecommend
-            // HomeSwiper,
-            // HomeRecommend,
-            // HomeFeatureView,
-            // TabControl,
-            // GoodsList,
-            // Scroller,
-            // BackTop
-        },
-      data(){
-          return {
-            banners:[],
-            recommends:[]
-          }
+      name: "Home",
+      components: {
+        NavBar,
+        HomeSwiper,
+        HomeRecommend,
+        HomeFeatureView,
+        TabControl,
+        GoodsList,
+        Scroll,
+        BackTop
+        // HomeSwiper,
+        // HomeRecommend,
+        // HomeFeatureView,
+        // TabControl,
+        // GoodsList,
+        // Scroller,
+        // BackTop
+      },
+      data() {
+        return {
+          banners: [],
+          recommends: [],
+          goods: {
+            'pop': {page: 0, list: []},
+            'new': {page: 0, list: []},
+            'sell': {page: 0, list: []},
+          },
+          currentType:'pop',
+          isShow:false
+        }
       },
       // 在组件被创建之前发送网络请求
       created() {
         // 请求多个数据 axios的返回结果为promise
-        getHomeMultidata().then(res => {
-          // console.log(res);
-          this.banners=res.data.banner.list;
-          // console.log(this.banners);
-          this.recommends=res.data.recommend.list;
-        })
+        this.getHomeMultidata()
+        // 请求商品数据
+        this.getHomeGoods('pop')
+        this.getHomeGoods('new')
+        this.getHomeGoods('sell')
+        // getHomeGoods('pop',1 ).then(res=>{
+        //   console.log(res);
+        // })
+      },
+      computed:{
+        showData(){
+          return this.goods[this.currentType].list
+        }
+      },
+      methods: {
+        // 上拉加载更多数据
+        loadMore(){
+          this.getHomeGoods(this.currentType)
+          // 每次申请图片后重新进行刷新高度
+          this.$refs.scroll.scroll.refresh()
+        },
+        contentScroll(position) {
+          this.isShow=(-position.y)>1000
+        },
+        // 迅速返回顶部的方法
+        BackClick(){
+          // 拿到scroll对象，调用scrollTo方法
+          this.$refs.scroll.scroll.scrollTo(0,0,500)
+          // 调用scroll组件里面的scrollTo方法
+          // this.$refs.scroll.scrollTo(0,0)
+        },
+        // 事件监听相关的方法
+        tabClick(index){
+          switch (index) {
+            case 0:
+              this.currentType='pop'
+              break
+            case 1:
+              this.currentType='new'
+              break
+            case 2:
+              this.currentType='pop'
+              break
+          }
+        },
+        // 网络请求相关的方法
+        getHomeMultidata() {
+          getHomeMultidata().then(res => {
+            this.banners = res.data.banner.list;
+            this.recommends = res.data.recommend.list;
+          })
+        },
+
+        getHomeGoods(type) {
+          const page = this.goods[type].page + 1
+          getHomeGoods(type, page).then(res => {
+            // console.log(res);
+            // 将数据保存在goods里面
+            this.goods[type].list.push(...res.data.list)
+            // 改变页码
+            this.goods[type].page += 1
+            // 继续上拉加载更多 先关闭 ，后继续请求
+            this.$refs.scroll.finishPullUp()
+          })
+        },
       }
+    }
+
       // data() {
         //   return {
         //     banners: [],
@@ -134,13 +226,42 @@
         //         this.isShowBackTop = -postion.y > 300
         //     }
         // }
-    }
+
 </script>
 
 <style scoped>
+  #home{
+    position: relative;
+    padding-top: 44px;
+    /*vh是视图高度 viewpoint*/
+    height: 100vh;
+  }
   .home-nav{
     background-color: var(--color-tint);
     color: #fff;
+    position: fixed;
+    top: 0px;
+    right: 0px;
+    left: 0px;
+    z-index: 8;
+  }
+  .tab-control{
+    position: sticky;
+    top: 44px;
+    z-index: 9;
+  }
+  /*.content{*/
+  /*  height:calc(100% - 93px);*/
+  /*  overflow: hidden;*/
+  /*  margin-top: 51px;*/
+  /*}*/
+  .content{
+    overflow: hidden;
+    position: absolute;
+    top: 44px;
+    bottom: 49px;
+    left: 0px;
+    right: 0px;
   }
   /*#home {*/
   /*  padding-top: 44px;*/

@@ -1,3 +1,4 @@
+<!--eslint-disable-->
 <template>
     <div id="hy-swiper">
       <div class="swiper" @touchstart="touchStart" @touchmove="touchMove" @touchend="touchEnd">
@@ -16,13 +17,13 @@
 <script>
 	export default {
 		name: "Swiper",
-    props: {
+    props:{
       interval: {
-		    type: Number,
-        default: 3000
+        type:Number,
+        default: 2000
       },
       animDuration: {
-		    type: Number,
+		    type:Number,
         default: 300
       },
       moveRatio: {
@@ -36,7 +37,7 @@
     },
     data: function () {
 		  return {
-        slideCount: 0, // 元素个数
+		    slideCount: 0, // 元素个数
         totalWidth: 0, // swiper的宽度
         swiperStyle: {}, // swiper样式
         currentIndex: 1, // 当前的index

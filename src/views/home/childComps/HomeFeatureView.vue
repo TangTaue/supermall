@@ -1,7 +1,7 @@
 <template>
   <div class="home-feature">
     <a href="http://adi-v3.dev">
-      <img src="~assets/images/home/recommend_bg.jpg" alt="">
+      <img src="../../../assets/images/home/recommend_bg.jpg" alt="">
     </a>
   </div>
 </template>
