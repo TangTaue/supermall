@@ -4,14 +4,18 @@
     <NavBar class="home-nav">
       <div slot="center">购物街</div>
     </NavBar>
+    <TabControl  :title="['流行','精选','新款']"
+                @tabClick="tabClick" ref="tabControl1" class="tabC"
+                v-show="isFixed"
+    ></TabControl>
   <Scroll class="content" ref="scroll" :probe-type="3" @scroll="contentScroll"
           :pull-up-load="true"
           @pullingUp="loadMore">   <!--3 表示实时监听位置-->
-    <HomeSwiper :cbanners="banners"></HomeSwiper>
+    <HomeSwiper :cbanners="banners" @swiperImageLoad="swiperImageLoad"></HomeSwiper>
     <HomeRecommend v-bind:cproducts="recommends"></HomeRecommend>
     <HomeFeatureView></HomeFeatureView>
-    <TabControl class="tab-control" :title="['流行','精选','新款']"
-                @tabClick="tabClick"
+    <TabControl :title="['流行','精选','新款']"
+                @tabClick="tabClick" ref="tabControl2"
     ></TabControl>
     <!--    商品列表-->
     <GoodsList :goods="showData"></GoodsList>
@@ -92,7 +96,10 @@
             'sell': {page: 0, list: []},
           },
           currentType:'pop',
-          isShow:false
+          isShow:false,
+          tabOffsetTop:0,
+          isFixed:false,
+          saveY:0
         }
       },
       // 在组件被创建之前发送网络请求
@@ -107,12 +114,45 @@
         //   console.log(res);
         // })
       },
+      mounted() {
+        // 在DOM渲染完毕之后监听
+        // 防抖函数的调用   第一个参数是调用的参数 不用加上括号
+        const refresh=this.debounce(this.$refs.scroll.refresh,50)
+        // 3 事件总线的监听
+        this.$bus.$on("itemImageLoad",()=>{
+          refresh()
+        })
+      },
       computed:{
         showData(){
           return this.goods[this.currentType].list
         }
       },
+
+      activated() {
+        // 立刻回到起始位置
+        this.$refs.scroll.scroll.scrollTo(0,this.saveY,0)
+        // 刷新
+        this.$refs.scroll.refresh()
+      },
+      deactivated() {
+        this.saveY=this.$refs.scroll.scroll.y
+      },
       methods: {
+         swiperImageLoad(){
+           // console.log(this.$refs.tabControl.$el.offsetTop);
+          this.tabOffsetTop=this.$refs.tabControl2.$el.offsetTop;
+         },
+          // 防抖动的封装方法
+        debounce(func,delay){
+          var timer=null;
+          return function (...args) {
+            if (timer) clearTimeout(timer)
+            timer=setTimeout(() => {
+              func.apply(this,args)
+            }, delay)
+          }
+        },
         // 上拉加载更多数据
         loadMore(){
           this.getHomeGoods(this.currentType)
@@ -121,6 +161,8 @@
         },
         contentScroll(position) {
           this.isShow=(-position.y)>1000
+
+          this.isFixed=(-position.y)>this.tabOffsetTop
         },
         // 迅速返回顶部的方法
         BackClick(){
@@ -142,6 +184,9 @@
               this.currentType='pop'
               break
           }
+          // 将状态同步更新
+          this.$refs.tabControl1.currentType=index
+          this.$refs.tabControl2.currentType=index
         },
         // 网络请求相关的方法
         getHomeMultidata() {
@@ -232,18 +277,20 @@
 <style scoped>
   #home{
     position: relative;
-    padding-top: 44px;
+    /*padding-top: 44px;*/
     /*vh是视图高度 viewpoint*/
     height: 100vh;
   }
   .home-nav{
     background-color: var(--color-tint);
     color: #fff;
-    position: fixed;
-    top: 0px;
-    right: 0px;
-    left: 0px;
-    z-index: 8;
+
+    /*在使用浏览器原生滚动时，为了让导航不跟随一起滚动*/
+    /*position: fixed;*/
+    /*top: 0px;*/
+    /*right: 0px;*/
+    /*left: 0px;*/
+    /*z-index: 8;*/
   }
   .tab-control{
     position: sticky;
@@ -262,6 +309,10 @@
     bottom: 49px;
     left: 0px;
     right: 0px;
+  }
+  .tabC{
+    position: relative;
+    z-index: 9;
   }
   /*#home {*/
   /*  padding-top: 44px;*/

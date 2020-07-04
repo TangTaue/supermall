@@ -6,6 +6,7 @@ const Home = () => import('../views/home/Home')
 const Category = () => import('../views/category/Category')
 const Cart = () => import('../views/cart/Cart')
 const Me = () => import('../views/me/Me')
+const Detail=()=>import('../views/Detail/Detail')
 
 Vue.use(VueRouter)
 const routes = [
@@ -29,6 +30,11 @@ const routes = [
   {
     path: '/me',
     component:Me
+  },
+  {
+    // 动态路由 传入id去详情页
+    path: '/detail/:iid',
+    component:Detail
   }
 ]
 const router = new VueRouter({

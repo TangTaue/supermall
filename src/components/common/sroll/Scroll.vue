@@ -26,27 +26,37 @@
           }
       },
       mounted() {
+
         this.scroll = new BScroll(this.$refs.wrapper, {
           // prototype: 3
           click:true,
           probeType: this.probeType,
           pullUpLoad:this.pullUpLoad
         })
-        this.scroll.on("scroll",(position)=>{
-          this.$emit('scroll',position)
-        })
-        this.scroll.on("pullingUp",()=>{
-          // 将事件发送出去
-          this.$emit("pullingUp")
-        })
+        // 2 或者 3 的时候监听滚动
+        if(this.probeType === 2|| this.probeType === 3){
+          this.scroll.on("scroll",(position)=>{
+            this.$emit('scroll',position)
+          })
+        }
+        if(this.pullUpLoad){
+          this.scroll.on("pullingUp",()=>{
+            // 将事件发送出去
+            this.$emit("pullingUp")
+          })
+        }
       },
       methods:{
         // scrollto的封装
         scrollTop(x, y,time=300) {
-           this.scroll.scrollTo(x,y,time)
+           this.scroll && this.scroll.scrollTo(x,y,time)
         },
         finishPullUp(){
-          this.scroll.finishPullUp()
+          this.scroll && this.scroll.finishPullUp()
+        },
+        refresh(){
+          // scroll有值的情况下调用refresh()函数
+          this.scroll && this.scroll.refresh()
         }
       }
   }
