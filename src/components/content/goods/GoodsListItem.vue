@@ -27,7 +27,9 @@
           this.$bus.$emit("itemImageLoad")
         },
         itemClick(){
-          this.$router.push('/detail'+this.goodsItem.iid)
+          // 跳转到详情页
+          this.$router.push('/detail/'+this.goodsItem.iid)
+          // console.log('跳转到详情页');
         }
       }
     }
